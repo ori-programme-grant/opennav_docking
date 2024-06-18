@@ -579,7 +579,7 @@ void DockingServer::undockRobot()
 
     // Control robot to staging pose
     rclcpp::Time loop_start = this->now();
-    while (rclcpp::ok()) {
+    /*while (rclcpp::ok()) {
       // Stop if we exceed max duration
       auto timeout = rclcpp::Duration::from_seconds(goal->max_undocking_time);
       if (this->now() - loop_start > timeout) {
@@ -625,7 +625,34 @@ void DockingServer::undockRobot()
       // Publish command and sleep
       vel_publisher_->publish(command);
       loop_rate.sleep();
+    }*/
+
+    while (rclcpp::ok()) {
+      // Stop if we exceed max duration
+      auto timeout = rclcpp::Duration::from_seconds(goal->max_undocking_time);
+      if (this->now() - loop_start > timeout) {
+        publishZeroVelocity();
+        RCLCPP_INFO(get_logger(), "Robot has undocked!");
+        return;
+      }
+
+      // Stop if cancelled/preempted
+      if (checkAndWarnIfCancelled(undocking_action_server_, "undock_robot") ||
+        checkAndWarnIfPreempted(undocking_action_server_, "undock_robot"))
+      {
+        publishZeroVelocity();
+        undocking_action_server_->terminate_all(result);
+        return;
+      }
+
+      geometry_msgs::msg::Twist command;
+      command.linear.x = 0.15;
+      // Publish command and sleep
+      vel_publisher_->publish(command);
+      loop_rate.sleep();
     }
+    
+
   } catch (const tf2::TransformException & e) {
     RCLCPP_ERROR(get_logger(), "Transform error: %s", e.what());
     result->error_code = DockRobot::Result::UNKNOWN;
