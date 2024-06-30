@@ -407,7 +407,6 @@ bool DockingServer::approachDock(Dock * dock, geometry_msgs::msg::PoseStamped & 
     // Transform target_pose into base_link frame
     geometry_msgs::msg::PoseStamped target_pose = dock_pose;
     target_pose.header.stamp = rclcpp::Time(0);
-
     // The control law can get jittery when close to the end when atan2's can explode.
     // Thus, we backward project the controller's target pose a little bit after the
     // dock so that the robot never gets to the end of the spiral before its in contact
@@ -633,6 +632,8 @@ void DockingServer::undockRobot()
       if (this->now() - loop_start > timeout) {
         publishZeroVelocity();
         RCLCPP_INFO(get_logger(), "Robot has undocked!");
+        result->success = true;
+        undocking_action_server_->succeeded_current(result);
         return;
       }
 
