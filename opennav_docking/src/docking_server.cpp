@@ -414,7 +414,7 @@ bool DockingServer::approachDock(Dock * dock, geometry_msgs::msg::PoseStamped & 
     
     // there seems to be an issue with that when the robot is moving backwards, 
     // so I changed the sign of the backward projection
-    const double backward_projection = -0.25;
+    const double backward_projection = -0.20;
     const double yaw = tf2::getYaw(target_pose.pose.orientation);
     target_pose.pose.position.x += cos(yaw) * backward_projection;
     target_pose.pose.position.y += sin(yaw) * backward_projection;
